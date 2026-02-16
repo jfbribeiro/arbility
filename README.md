@@ -8,17 +8,16 @@ Import your `.arb` files, and Arbility groups them by locale into a clean, edita
 
 - 📂 **Import multiple ARB files** — select one or more `.arb` files at once
 - 🏳️ **Automatic locale detection** — extracts locale from filenames (e.g. `app_en.arb` → `EN 🇬🇧`, `app_DE_de.arb` → `DE_DE 🇩🇪`)
-- 📊 **Unified table view** — translation keys as rows, languages as columns, with country flag indicators
+- 📊 **Unified table view** — translation keys as rows, languages as columns
 - ✏️ **Inline editing** — click any translation cell to edit it directly
 - 🟢 **Change tracking** — edited cells turn green; hover to see the original value
 - 🔍 **Search** — search by key name or translation value with instant debounced filtering
 - 🔗 **Source tracing** — hover any cell to see which file it came from
 - 📑 **Pagination** — configurable page size for large translation sets
 - 📤 **Excel export** — export all translations to `.xlsx` via the expandable FAB
+- 📤 **Excel to Arb utility** — convert the `.xlsx` file into a set of `.arb`
 - ⚖️ **File priority** — when duplicate keys exist across files, drag-to-reorder which file takes precedence
 - ⚙️ **Configurable** — toggle file priority and set page size via `configuration.json`
-- 📋 **Structured logging** — detailed logs across the app via the `logging` package
-- ⚡ **Optimized performance** — cells manage their own state, so typing and navigation are instant even with large files
 
 ## 🚀 Getting Started
 
@@ -61,18 +60,25 @@ Settings are loaded from `assets/configuration.json`:
 ```
 lib/
 ├── main.dart                      # App entry, theme, logging setup, Provider config
-├── models/
+├── config/
 │   ├── app_config.dart            # Configuration loader (from assets)
+├── models/
+│   ├── arb_document.dart          # Set of models used accross the app
+├── providers/
 │   └── arb_project.dart           # ArbEntry, ArbLookupResult, ArbProject data model
 ├── screens/
 │   └── home_screen.dart           # Main screen: header, search, stats, table
 ├── services/
 │   └── excel_export.dart          # Excel export + browser download
+│   └── arb_import.dart            # Excel importer to display in the browser
+│   └── excel_to_arb.dart          # Excel file to .zip of .arbs + browser download
 └── widgets/
     ├── arb_table.dart             # Paginated editable translation table
     ├── expandable_fab.dart        # Expandable floating action button
     ├── file_priority_dialog.dart  # Drag-to-reorder file priority dialog
-    └── import_area.dart           # File picker import zone
+    ├── import_area.dart           # File picker import zone
+    └── loading_overlay.dart       # Loading widget
+
 ```
 
 ## 📦 Dependencies
