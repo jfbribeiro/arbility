@@ -1,5 +1,7 @@
 # 🌐 Arbility
 
+![img.png](img.png)
+
 A Flutter web app for viewing and editing ARB (Application Resource Bundle) translation files side by side.
 
 Import your `.arb` files, and Arbility groups them by locale into a clean, editable table — making it easy to compare and update translations across languages.
