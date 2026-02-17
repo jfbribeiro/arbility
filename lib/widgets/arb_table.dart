@@ -513,6 +513,18 @@ class _EditableCellState extends State<_EditableCell> {
     _isModified = _controller.text != widget.originalValue;
   }
 
+  /// Syncs the text controller and modified state when the parent
+  /// rebuilds with new values (e.g. after file-priority reorder).
+  @override
+  void didUpdateWidget(covariant _EditableCell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialValue != widget.initialValue ||
+        oldWidget.originalValue != widget.originalValue) {
+      _controller.text = widget.initialValue;
+      _isModified = _controller.text != widget.originalValue;
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();

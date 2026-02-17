@@ -8,7 +8,9 @@ import '../providers/arb_project.dart';
 import '../config/app_config.dart';
 import '../services/arb_import.dart';
 import '../services/excel_export.dart';
+import '../services/arb_download.dart';
 import '../services/excel_to_arb.dart';
+import '../widgets/add_entry_dialog.dart';
 import '../widgets/arb_table.dart';
 import '../widgets/expandable_fab.dart';
 import '../widgets/file_priority_dialog.dart';
@@ -63,9 +65,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               if (!project.isEmpty)
                 FabAction(
+                  icon: Icons.add_circle_outline,
+                  label: 'Add new entry',
+                  onPressed: () => AddEntryDialog.show(context, project),
+                ),
+              if (!project.isEmpty)
+                FabAction(
                   icon: Icons.table_chart_outlined,
                   label: 'Export to Excel',
                   onPressed: () => exportToExcel(context, project),
+                ),
+              if (!project.isEmpty)
+                FabAction(
+                  icon: Icons.download_outlined,
+                  label: 'Download ARB files',
+                  onPressed: () => downloadArbFiles(context, project),
                 ),
               FabAction(
                 icon: Icons.upload_file_outlined,

@@ -18,6 +18,8 @@ Import your `.arb` files, and Arbility groups them by locale into a clean, edita
 - 📑 **Pagination** — configurable page size for large translation sets
 - 📤 **Excel export** — export all translations to `.xlsx` via the expandable FAB
 - 📤 **Excel to Arb utility** — convert the `.xlsx` file into a set of `.arb`
+- ➕ **Add new entry** — define a new translation key with values for each locale directly in the app
+- 📥 **Download ARB files** — export the current table state (including edits and new entries) as a `.zip` of `.arb` files
 - ⚖️ **File priority** — when duplicate keys exist across files, drag-to-reorder which file takes precedence
 - ⚙️ **Configurable** — toggle file priority and set page size via `configuration.json`
 
@@ -74,9 +76,11 @@ lib/
 │   └── excel_export.dart          # Excel export + browser download
 │   └── arb_import.dart            # Excel importer to display in the browser
 │   └── excel_to_arb.dart          # Excel file to .zip of .arbs + browser download
+│   └── arb_download.dart          # Export current project as .zip of .arb files
 └── widgets/
     ├── arb_table.dart             # Paginated editable translation table
     ├── expandable_fab.dart        # Expandable floating action button
+    ├── add_entry_dialog.dart       # Add new translation entry dialog
     ├── file_priority_dialog.dart  # Drag-to-reorder file priority dialog
     ├── import_area.dart           # File picker import zone
     └── loading_overlay.dart       # Loading widget
@@ -90,6 +94,7 @@ lib/
 | [`provider`](https://pub.dev/packages/provider) | State management |
 | [`file_picker`](https://pub.dev/packages/file_picker) | Cross-platform file selection |
 | [`excel`](https://pub.dev/packages/excel) | Excel file generation |
+| [`archive`](https://pub.dev/packages/archive) | Zip file creation |
 | [`web`](https://pub.dev/packages/web) | Web API access for file download |
 | [`logging`](https://pub.dev/packages/logging) | Structured logging |
 
@@ -101,7 +106,7 @@ lib/
 4. Click any translation cell to edit it — modified cells turn **green**
 5. Hover a modified cell to see the **original value**; hover an unmodified cell to see the **source filename**
 6. Use the 🔍 search field in the header to filter by key name or translation value
-7. Click the **+** button to access actions like **Export to Excel**
+7. Click the **+** button to access actions like **Add new entry**, **Export to Excel**, or **Download ARB files**
 8. If file priority is enabled, click the **files** chip in the header to reorder file precedence
 9. Use the 🗑️ button in the header to clear everything and start over
 
