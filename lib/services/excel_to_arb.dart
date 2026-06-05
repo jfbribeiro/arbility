@@ -79,35 +79,52 @@ Future<void> excelToArb(BuildContext context) async {
 
   _log.fine('Found ${locales.length} locale(s): $locales');
 
-  // 4. Build locale -> { key: value } maps
-  final localeData = <String, Map<String, String>>{
-    for (final locale in locales) locale: {},
-  };
+  // 4. Build outputFilename -> { key: value } maps.
+  // The Context column (col 0) holds the original source filename(s) (comma-
+  // separated when a key came from different files across locales). We use it
+  // to reconstruct the correct per-locale ARB filename for each key.
+  final fileData = <String, Map<String, String>>{};
+  var totalKeys = 0;
 
   for (var rowIdx = 1; rowIdx < sheet.maxRows; rowIdx++) {
     final row = sheet.row(rowIdx);
+    final context = row.isNotEmpty ? (row[0]?.value?.toString() ?? '') : '';
     final key = row.length > 1 ? (row[1]?.value?.toString() ?? '') : '';
     if (key.isEmpty) continue;
 
+    // Context may list multiple filenames separated by ", "
+    final contextFiles = context.isNotEmpty
+        ? context
+              .split(',')
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList()
+        : <String>[];
+
+    var addedAny = false;
     for (var col = 0; col < locales.length; col++) {
+      final locale = locales[col];
       final cellIdx = 3 + col;
       final value = row.length > cellIdx
           ? (row[cellIdx]?.value?.toString() ?? '')
           : '';
-      localeData[locales[col]]![key] = value;
+
+      final outputFilename = _resolveFilename(contextFiles, locale);
+      fileData.putIfAbsent(outputFilename, () => {})[key] = value;
+      addedAny = true;
     }
+    if (addedAny) totalKeys++;
   }
 
-  _log.fine(
-    'Parsed ${localeData.values.first.length} keys across ${locales.length} locale(s)',
-  );
+  _log.fine('Parsed $totalKeys keys into ${fileData.length} file(s)');
 
-  // 5. Generate ARB JSON for each locale and build zip archive
+  // 5. Generate ARB JSON for each output file and build zip archive
   final archive = Archive();
 
-  for (final locale in locales) {
-    final entries = localeData[locale]!;
+  for (final filename in fileData.keys) {
+    final entries = fileData[filename]!;
     final sortedKeys = entries.keys.toList()..sort();
+    final locale = _localeFromFilename(filename);
     final arbMap = <String, String>{
       '@@locale': locale,
       for (final key in sortedKeys) key: entries[key]!,
@@ -116,8 +133,8 @@ Future<void> excelToArb(BuildContext context) async {
     final jsonStr = const JsonEncoder.withIndent('  ').convert(arbMap);
     final arbBytes = utf8.encode(jsonStr);
 
-    archive.addFile(ArchiveFile('intl_$locale.arb', arbBytes.length, arbBytes));
-    _log.fine('Added intl_$locale.arb (${arbBytes.length} bytes)');
+    archive.addFile(ArchiveFile(filename, arbBytes.length, arbBytes));
+    _log.fine('Added $filename (${arbBytes.length} bytes)');
   }
 
   // 6. Encode zip and trigger download
@@ -143,6 +160,38 @@ Future<void> excelToArb(BuildContext context) async {
   web.URL.revokeObjectURL(url);
 
   _log.info(
-    'Zip downloaded: arbility_arb_files.zip (${zipBytes.length} bytes, ${locales.length} ARB files)',
+    'Zip downloaded: arbility_arb_files.zip (${zipBytes.length} bytes, ${fileData.length} ARB files)',
   );
+}
+
+/// Picks the output ARB filename for [locale] given [contextFiles] from the
+/// Context column.
+///
+/// Strategy:
+///  1. If no context, fall back to `intl_$locale.arb`.
+///  2. Find the first context file whose locale portion matches [locale] and
+///     use it verbatim (preserves the original filename exactly).
+///  3. Otherwise derive from the first context file by replacing its locale
+///     portion: `intl_en.arb` + `fr` → `intl_fr.arb`.
+String _resolveFilename(List<String> contextFiles, String locale) {
+  if (contextFiles.isEmpty) return 'intl_$locale.arb';
+
+  for (final f in contextFiles) {
+    if (_localeFromFilename(f) == locale) return f;
+  }
+
+  // Derive: strip locale from the first candidate and append target locale.
+  final template = contextFiles.first;
+  final withoutExt = template.replaceAll('.arb', '');
+  final i = withoutExt.indexOf('_');
+  final prefix = i == -1 ? withoutExt : withoutExt.substring(0, i);
+  return '${prefix}_$locale.arb';
+}
+
+/// Extracts the locale identifier from an ARB filename.
+/// `"intl_en.arb"` → `"en"`, `"app_en_US.arb"` → `"en_US"`.
+String _localeFromFilename(String filename) {
+  final withoutExt = filename.replaceAll('.arb', '');
+  final i = withoutExt.indexOf('_');
+  return i == -1 ? withoutExt : withoutExt.substring(i + 1);
 }
