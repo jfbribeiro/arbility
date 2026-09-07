@@ -16,9 +16,34 @@ class AppConfig {
   /// Number of translation rows displayed per page in the table.
   final int pageSize;
 
-  const AppConfig({required this.filePriority, required this.pageSize});
+  /// Allowed locales for import prompts and locale validation.
+  final List<String> supportedLocales;
 
-  static const _defaultConfig = AppConfig(filePriority: true, pageSize: 25);
+  const AppConfig({
+    required this.filePriority,
+    required this.pageSize,
+    required this.supportedLocales,
+  });
+
+  static const _defaultConfig = AppConfig(
+    filePriority: true,
+    pageSize: 25,
+    supportedLocales: [
+      'de',
+      'cs',
+      'de-at',
+      'de-ch',
+      'de-lu',
+      'en',
+      'fr-ch',
+      'fr-lu',
+      'nl',
+      'ro',
+      'sk',
+      'sv',
+      'rs',
+    ],
+  );
 
   /// Reads `configuration.json` from the asset bundle and returns an
   /// [AppConfig]. Falls back to sensible defaults if the file is missing
@@ -28,9 +53,15 @@ class AppConfig {
       _log.fine('Loading configuration from assets...');
       final jsonStr = await rootBundle.loadString('configuration.json');
       final Map<String, dynamic> json = jsonDecode(jsonStr);
+      final rawSupported = (json['supportedLocales'] as List<dynamic>? ?? [])
+          .whereType<String>()
+          .toList();
       final config = AppConfig(
         filePriority: json['filePriority'] as bool? ?? true,
         pageSize: json['pageSize'] as int? ?? 25,
+        supportedLocales: rawSupported.isEmpty
+            ? _defaultConfig.supportedLocales
+            : rawSupported,
       );
       _log.info('Configuration loaded successfully');
       return config;

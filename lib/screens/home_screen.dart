@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
             actions: [
               FabAction(
                 icon: Icons.file_open_outlined,
-                label: 'Import ARB files',
+                label: 'Import translation files',
                 onPressed: () => importArbFiles(context),
               ),
               if (!project.isEmpty)
@@ -137,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    'ARB Viewer',
+                    'Translation Tool',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

@@ -1,4 +1,19 @@
 {
   "filePriority": true,
-  "pageSize": 25
+  "pageSize": 25,
+  "supportedLocales": [
+    "de",
+    "cs",
+    "de-at",
+    "de-ch",
+    "de-lu",
+    "en",
+    "fr-ch",
+    "fr-lu",
+    "nl",
+    "ro",
+    "sk",
+    "sv",
+    "rs"
+  ]
 }

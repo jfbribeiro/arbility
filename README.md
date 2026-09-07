@@ -1,29 +1,31 @@
-# 🌐 Arbility
+# Arbility
 
 ![img.png](img.png)
 
-A Flutter web app for viewing and editing ARB (Application Resource Bundle) translation files side by side.
+A Flutter web application for managing and editing translation files in multiple formats simultaneously.
 
-Import your `.arb` files, and Arbility groups them by locale into a clean, editable table — making it easy to compare and update translations across languages.
+Arbility supports importing ARB and `.properties` translation files, organizing them by locale into an editable table for easy comparison and updates across languages. Export to Excel with consistent column ordering, or back to `.arb` files for integration into your projects.
 
-## ✨ Features
+## Features
 
-- 📂 **Import multiple ARB files** — select one or more `.arb` files at once
-- 🏳️ **Automatic locale detection** — extracts locale from filenames (e.g. `app_en.arb` → `EN 🇬🇧`, `app_DE_de.arb` → `DE_DE 🇩🇪`)
-- 📊 **Unified table view** — translation keys as rows, languages as columns
-- ✏️ **Inline editing** — click any translation cell to edit it directly
-- 🟢 **Change tracking** — edited cells turn green; hover to see the original value
-- 🔍 **Search** — search by key name or translation value with instant debounced filtering
-- 🔗 **Source tracing** — hover any cell to see which file it came from
-- 📑 **Pagination** — configurable page size for large translation sets
-- 📤 **Excel export** — export all translations to `.xlsx` via the expandable FAB
-- 📤 **Excel to Arb utility** — convert the `.xlsx` file into a set of `.arb`
-- ➕ **Add new entry** — define a new translation key with values for each locale directly in the app
-- 📥 **Download ARB files** — export the current table state (including edits and new entries) as a `.zip` of `.arb` files
-- ⚖️ **File priority** — when duplicate keys exist across files, drag-to-reorder which file takes precedence
-- ⚙️ **Configurable** — toggle file priority and set page size via `configuration.json`
+- **Multi-format import** — import one or more `.arb` or `.properties` files in a single operation
+- **Automatic locale detection** — extracts locale from filenames (e.g., `app_en.arb` → `en`, `messages_de_DE.properties` → `de_DE`)
+- **Smart locale assignment** — when a filename contains no locale or an unsupported one, a dialog prompts selection from configured supported locales
+- **Locale validation** — invalid filename locales are caught and handled with user guidance
+- **Fixed column layout** — Excel export always includes all configured locales in consistent order, regardless of imported files
+- **Inline editing** — edit any translation cell directly in the table
+- **Change tracking** — modified cells are highlighted; original values available on hover
+- **Search and filter** — search by key name or translation value with instant debounced results
+- **Source attribution** — hover cells to see which file a translation came from
+- **Pagination** — configurable page size for managing large translation sets
+- **Excel export** — choose export filename and download with all configured locale columns
+- **Excel to ARB conversion** — convert Excel files back into individual `.arb` files
+- **Key management** — add new translation keys with values for each configured locale
+- **ARB download** — export current project state (with all edits and new entries) as a ZIP archive of `.arb` files
+- **File priority** — resolve duplicate keys by drag-to-reorder file precedence
+- **Full configuration** — control supported locales, file priority, and pagination via `configuration.json`
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -43,23 +45,30 @@ flutter run -d chrome
 flutter test
 ```
 
-## ⚙️ Configuration
+## Configuration
 
-Settings are loaded from `assets/configuration.json`:
+Application settings are loaded from `assets/configuration.json`:
 
 ```json
 {
   "filePriority": true,
-  "pageSize": 25
+  "pageSize": 25,
+  "supportedLocales": [
+    "de", "cs", "de-at", "de-ch", "de-lu",
+    "en",
+    "fr-ch", "fr-lu",
+    "nl", "ro", "sk", "sv", "rs"
+  ]
 }
 ```
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `filePriority` | `bool` | `true` | Enable file priority for duplicate key resolution |
-| `pageSize` | `int` | `25` | Number of rows per page in the translation table |
+| `filePriority` | `bool` | `true` | Enable file priority-based conflict resolution for duplicate keys |
+| `pageSize` | `int` | `25` | Number of translation rows displayed per page |
+| `supportedLocales` | `array` | `["de", "cs", "de-at", "de-ch", "de-lu", "en", "fr-ch", "fr-lu", "nl", "ro", "sk", "sv", "rs"]` | Allowed locales for import validation and Excel export column ordering |
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 lib/
@@ -87,32 +96,41 @@ lib/
 
 ```
 
-## 📦 Dependencies
+## Dependencies
 
 | Package | Purpose |
 |---------|---------|
-| [`provider`](https://pub.dev/packages/provider) | State management |
+| [`provider`](https://pub.dev/packages/provider) | Application state management |
 | [`file_picker`](https://pub.dev/packages/file_picker) | Cross-platform file selection |
-| [`excel`](https://pub.dev/packages/excel) | Excel file generation |
-| [`archive`](https://pub.dev/packages/archive) | Zip file creation |
-| [`web`](https://pub.dev/packages/web) | Web API access for file download |
-| [`logging`](https://pub.dev/packages/logging) | Structured logging |
+| [`excel`](https://pub.dev/packages/excel) | Excel spreadsheet generation and encoding |
+| [`archive`](https://pub.dev/packages/archive) | ZIP archive creation and compression |
+| [`web`](https://pub.dev/packages/web) | Web API bindings for browser operations |
+| [`logging`](https://pub.dev/packages/logging) | Structured application logging |
 
-## 🧑‍💻 Usage
+## Usage
 
-1. Click the **Import ARB files** area to select `.arb` files from your machine
-2. Files are grouped by locale — each unique locale gets its own column
-3. All translation keys from all files appear as rows
-4. Click any translation cell to edit it — modified cells turn **green**
-5. Hover a modified cell to see the **original value**; hover an unmodified cell to see the **source filename**
-6. Use the 🔍 search field in the header to filter by key name or translation value
-7. Click the **+** button to access actions like **Add new entry**, **Export to Excel**, or **Download ARB files**
-8. If file priority is enabled, click the **files** chip in the header to reorder file precedence
-9. Use the 🗑️ button in the header to clear everything and start over
+1. Open the application and click the **Import translation files** area to select `.arb` or `.properties` files
+2. For files without an explicit locale in the filename (e.g., `messages.properties`, `strings.arb`):
+   - A dialog will appear requesting selection of a locale from the configured supported list
+3. For files with an unsupported locale in the filename (e.g., `messages_fr_CA.properties` when `fr-ca` is not configured):
+   - A dialog will indicate the invalid locale and request selection of a valid alternative
+4. Imported files are organized by locale, with each locale displayed as a column
+5. All translation keys from imported files are displayed as table rows
+6. Click any translation cell to edit its value; modified cells are visually highlighted
+7. Hover over a modified cell to see the original value; hover over unmodified cells to see the source filename
+8. Use the search field in the header to filter translations by key name or translation value
+9. Click the action button to access:
+   - **Add new entry** — create a new translation key with values for each configured locale
+   - **Export to Excel** — select a filename and download a spreadsheet with all configured locale columns
+   - **Download ARB files** — export current project state (including edits and new entries) as a ZIP archive
+10. If file priority is enabled, click the **Files** indicator in the header to adjust file precedence
+11. Click the **Clear** button to reset the application and begin with a new project
 
-## 📝 ARB File Format
+## Supported File Formats
 
-Arbility expects standard ARB files — JSON with string key-value pairs:
+### ARB (Application Resource Bundle)
+
+Standard JSON format with string key-value pairs and optional metadata:
 
 ```json
 {
@@ -124,11 +142,32 @@ Arbility expects standard ARB files — JSON with string key-value pairs:
 
 Keys starting with `@` are treated as metadata and skipped.
 
-Locale is extracted from the **filename**, not the file contents: everything after the first underscore, before `.arb`.
+### `.properties` (Java Properties)
+
+Key-value format with support for Unicode escapes:
+
+```properties
+# Sample translations
+invoice.customer-card-number=Customer/Card no.:
+invoice.tax-hint=Dient als Steuerbeleg für Ihr Finanzamt.
+invoice.date=Date
+```
+
+Supports:
+- Comments (lines starting with `#` or `!`)
+- Key-value pairs with `=`, `:`, or whitespace separators
+- Unicode escapes (e.g. `\u00fc` for `ü`)
+- Escaped characters (`\n`, `\t`, `\\`, etc.)
+- Line continuation with trailing backslash
+
+### Locale Extraction
+
+Locale is extracted from the **filename**, not the file contents: everything after the first underscore, before the file extension (`.arb` or `.properties`).
 
 | Filename | Extracted Locale |
 |----------|-----------------|
 | `app_en.arb` | `en` |
-| `app_pt_BR.arb` | `pt_BR` |
-| `test_DE_de.arb` | `DE_de` |
-| `messages.arb` | `messages` |
+| `app_pt_BR.properties` | `pt_BR` |
+| `messages_de_DE.arb` | `de_DE` |
+| `messages.arb` (no locale) | Prompt user to select from configured list |
+| `strings_fr_CA.properties` (unsupported locale) | Prompt user to select valid locale from configured list |

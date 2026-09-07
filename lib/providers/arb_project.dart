@@ -190,11 +190,20 @@ class ArbProject extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Extracts the locale identifier from an ARB filename.
+  /// Extracts the locale identifier from an ARB/properties filename.
   ///
-  /// E.g. `"intl_en_US.arb"` → `"en_US"`, `"messages.arb"` → `"messages"`.
+  /// E.g. `"intl_en_US.arb"` -> `"en_US"`,
+  /// `"message_en.properties"` -> `"en"`, `"messages.arb"` -> `"messages"`.
   static String extractLocale(String filename) {
-    final withoutExt = filename.replaceAll('.arb', '');
+    final lower = filename.toLowerCase();
+    var withoutExt = filename;
+
+    if (lower.endsWith('.arb')) {
+      withoutExt = filename.substring(0, filename.length - 4);
+    } else if (lower.endsWith('.properties')) {
+      withoutExt = filename.substring(0, filename.length - 11);
+    }
+
     final firstUnderscore = withoutExt.indexOf('_');
     if (firstUnderscore == -1) {
       return withoutExt;

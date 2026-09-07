@@ -1,11 +1,9 @@
-import 'dart:js_interop';
-import 'dart:typed_data';
-
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:web/web.dart' as web;
+import 'package:provider/provider.dart';
 
+import '../config/app_config.dart';
 import '../providers/arb_project.dart';
 import '../widgets/loading_overlay.dart';
 
@@ -18,6 +16,12 @@ final _log = Logger('ExcelExport');
 /// locale1 | locale2 | ...`) followed by one data row per key. A loading
 /// dialog is shown during generation.
 Future<void> exportToExcel(BuildContext context, ArbProject project) async {
+  final outputFilename = await _showExportFilenameDialog(context);
+  if (outputFilename == null) {
+    _log.info('Excel export cancelled by user before generation');
+    return;
+  }
+
   _log.info('Starting Excel export...');
   showLoadingDialog(context, message: 'Exporting to Excel...');
 
@@ -31,7 +35,8 @@ Future<void> exportToExcel(BuildContext context, ArbProject project) async {
   excel.rename(defaultSheet, 'labels');
   final sheet = excel['labels'];
 
-  final locales = project.sortedLocales;
+  final config = context.read<AppConfig>();
+  final locales = _configuredLocales(config.supportedLocales);
   final keys = project.sortedKeys;
 
   // Header row
@@ -105,8 +110,8 @@ Future<void> exportToExcel(BuildContext context, ArbProject project) async {
 
   _log.fine('Exported ${keys.length} keys across ${locales.length} locale(s)');
 
-  // Encode and trigger download
-  final bytes = excel.save();
+  // On web, save(fileName: ...) triggers a single browser download.
+  final bytes = excel.save(fileName: outputFilename);
 
   if (context.mounted) hideLoadingDialog(context);
 
@@ -115,20 +120,68 @@ Future<void> exportToExcel(BuildContext context, ArbProject project) async {
     return;
   }
 
-  final uint8List = Uint8List.fromList(bytes);
-  final blob = web.Blob(
-    [uint8List.toJS].toJS,
-    web.BlobPropertyBag(
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ),
-  );
-  final url = web.URL.createObjectURL(blob);
-  final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
-  anchor.href = url;
-  anchor.download = 'arbility_export.xlsx';
-  anchor.click();
-  web.URL.revokeObjectURL(url);
-  _log.info(
-    'Excel file downloaded: arbility_export.xlsx (${bytes.length} bytes)',
-  );
+  _log.info('Excel file downloaded: $outputFilename (${bytes.length} bytes)');
+}
+
+Future<String?> _showExportFilenameDialog(BuildContext context) {
+  final controller = TextEditingController(text: 'arbility_export.xlsx');
+  String? errorText;
+
+  return showDialog<String>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Export filename'),
+            content: SizedBox(
+              width: 420,
+              child: TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Filename',
+                  hintText: 'e.g. translations.xlsx',
+                  errorText: errorText,
+                  border: const OutlineInputBorder(),
+                ),
+                onChanged: (_) {
+                  if (errorText != null) setState(() => errorText = null);
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final raw = controller.text.trim();
+                  if (raw.isEmpty) {
+                    setState(() => errorText = 'Filename must not be empty');
+                    return;
+                  }
+                  final filename = raw.toLowerCase().endsWith('.xlsx')
+                      ? raw
+                      : '$raw.xlsx';
+                  Navigator.of(dialogContext).pop(filename);
+                },
+                child: const Text('Export'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  ).whenComplete(controller.dispose);
+}
+
+List<String> _configuredLocales(List<String> locales) {
+  final cleaned = locales
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+  return cleaned.isNotEmpty ? cleaned : ['en'];
 }

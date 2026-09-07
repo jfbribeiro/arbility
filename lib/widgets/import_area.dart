@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/arb_import.dart';
 
 /// A drop-zone-style card shown when no files are loaded. Clicking it
-/// opens the file picker to import `.arb` files via [importArbFiles].
+/// opens the file picker to import `.arb` or `.properties` files via
+/// [importArbFiles].
 class ImportArea extends StatefulWidget {
   const ImportArea({super.key});
 
@@ -57,7 +58,7 @@ class _ImportAreaState extends State<ImportArea> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Import ARB files',
+                'Import translation files',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -66,7 +67,7 @@ class _ImportAreaState extends State<ImportArea> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Click to browse and select one or more .arb files',
+                'Click to select one or more .arb or .properties files',
                 style: TextStyle(
                   fontSize: 13,
                   color: colors.onSurface.withValues(alpha: 0.5),
